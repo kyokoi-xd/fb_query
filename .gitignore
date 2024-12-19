@@ -1,0 +1,7 @@
+# Директории
+.venv/
+build/
+dist/
+
+# Файлы
+firebird_query.spec
