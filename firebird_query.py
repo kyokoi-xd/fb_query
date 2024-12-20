@@ -1,20 +1,18 @@
 import fdb
 import os
+import json
 from prettytable import PrettyTable
 
 
-db_config = {"host": "localhost",
-             "database": "C:/Users/Dima/Desktop/py/taskdubrov/test1.fdb",
-             "user": "SYSDBA",
-             "password": "masterkey",
-             "charset": "UTF-8"}
-
+def load_config():
+    if not os.path.exists("config.json"):
+        raise FileNotFoundError("Файл config.json не найден. Настройте подключение через интерфейс.")
+    with open("config.json", "r", encoding="utf-8") as f:
+        return json.load(f)
 
 def read_query(filename):
     with open(filename, "r", encoding="utf-8") as file:
         return file.read()
-    if not os.path.exists(filename):
-        raise FileNotFoundError(f"Файл {filename} не найден")
     
 
 def print_results(cursor, results):
@@ -30,17 +28,16 @@ def print_results(cursor, results):
             print(table)
     else:
         print("Запрос выполнен, но данных для вывода нет")
-        return
 
 
 def try_query(sql):
     try:
-        connection = fdb.connect(**db_config)
+        config = load_config
+        connection = fdb.connect(**config)
         cursor = connection.cursor()
 
         queries = sql.strip().split(';')
 
-        select_result = []
 
         for query in queries:
             if query.strip():
@@ -48,11 +45,7 @@ def try_query(sql):
                 print(f"SQL-запрос выполнен успешно: {query}")
                 if query.strip().upper().startswith("SELECT"):
                     results = cursor.fetchall()
-                    select_result.append(results)
-
-        for i, results in enumerate(select_result, start=1):
-            print(f"Результаты SELECT запроса {i}:")
-            print_results(cursor, results)
+                    print_results(cursor, results)
 
         connection.commit()
         cursor.close()
