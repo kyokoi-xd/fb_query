@@ -4,9 +4,11 @@ import json
 from prettytable import PrettyTable
 
 
-def load_config():
-    if not os.path.exists("config.json"):
+def load_config(config_path="config.json"):
+    if not os.path.exists(config_path):
         raise FileNotFoundError("Файл config.json не найден. Настройте подключение через интерфейс.")
+    if os.path.getsize(config_path) == 0:
+        raise ValueError("Файл config.json пуст. Настройте подключение через интерфейс.")
     with open("config.json", "r", encoding="utf-8") as f:
         return json.load(f)
 
@@ -32,7 +34,7 @@ def print_results(cursor, results):
 
 def try_query(sql):
     try:
-        config = load_config
+        config = load_config()
         connection = fdb.connect(**config)
         cursor = connection.cursor()
 

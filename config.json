@@ -1,0 +1,7 @@
+{
+    "host": "localhost",
+    "database": "C:/PythonProjects/fb_query/TEST1.FDB",
+    "user": "SYSDBA",
+    "password": "masterkey",
+    "charset": "UTF-8"
+}
