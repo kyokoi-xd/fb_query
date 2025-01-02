@@ -13,7 +13,7 @@ def save_config():
     else:
         config["host"] = remote_host_var.get()
         config["database"] = remote_db_name_var.get()
-    
+        
     config["user"] = user_var.get()
     config["password"] = password_var.get()
     config["charset"] = "UTF-8"
