@@ -83,7 +83,7 @@ def try_query():
             if query.strip():
                 cursor.execute(query)
                 print(f"SQL-запрос выполнен успешно: {query}")
-                if query.strip().upper.startswith("SELECT"):
+                if query.strip().upper().startswith("SELECT"):
                     results = cursor.fetchall()
                     print_results(cursor, results)
 
