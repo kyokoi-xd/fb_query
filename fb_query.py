@@ -79,15 +79,21 @@ def try_query():
 
         queries = sql.strip().split(';')
 
+        query_flag = True
+
         for query in queries:
-            if query.strip():
+            query = query.strip()
+            if query:
                 cursor.execute(query)
                 print(f"SQL-запрос выполнен успешно: {query}")
                 if query.strip().upper().startswith("SELECT"):
                     results = cursor.fetchall()
                     print_results(cursor, results)
+                    query_flag = False
 
         connection.commit()
+        if query_flag:
+            messagebox.showinfo("Успех", "SQL-запрос выполнен успешно и изменения сохранены.")
         cursor.close()
         connection.close()
     except Exception as e:

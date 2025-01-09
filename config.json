@@ -1,6 +1,6 @@
 {
     "host": "localhost",
-    "database": "C:/PythonProjects/fb_query/TEST1.FDB",
+    "database": "C:/Users/Dima/Desktop/py/taskdubrov/test 310/TEST1.FDB",
     "user": "SYSDBA",
     "password": "masterkey",
     "charset": "UTF-8"
