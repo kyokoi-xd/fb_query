@@ -120,7 +120,7 @@ tk.Label(remote_frame, text="Хост:", font=("Arial", 12)).pack(anchor="w")
 remote_host_var= tk.StringVar()
 tk.Entry(remote_frame, textvariable=remote_host_var, width=40).pack(anchor="w", padx=10, pady=5)
 
-tk.Label(remote_frame, text="Имя базы данных:", font=("Arial", 12)).pack(anchor="w")
+tk.Label(remote_frame, text="Путь к базе данных на сервере (полный путь):", font=("Arial", 12)).pack(anchor="w")
 remote_db_name_var = tk.StringVar()
 tk.Entry(remote_frame, textvariable=remote_db_name_var, width=40).pack(anchor="w", padx=10, pady=5)
 
