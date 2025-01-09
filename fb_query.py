@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk, filedialog, messagebox
+from tkinter import ttk, filedialog, messagebox, PhotoImage
 import fdb
 import os
 import json
@@ -65,15 +65,41 @@ def print_results(cursos, results):
     else:
         messagebox.showinfo("Результат", "Запрос выполнен, но данных для вывода нет")
 
+def load_query_files():
+    queries_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), "queries")
+    if not os.path.exists(queries_folder):
+        os.makedirs(queries_folder)
+    return [f for f in os.listdir(queries_folder) if f.endswith('.txt')]
+
+def create_query_dropdown_with_refresh():
+    query_files = load_query_files()
+    query_combobox = ttk.Combobox(query_frame, values=query_files, width=40, font=("Arial", 12))
+    query_combobox.place(x=10, y=40)
+
+
+    refresh_icon = PhotoImage(file='img/refresh.png')
+    refresh_button = tk.Button(query_frame, image=refresh_icon, command=update_query_list, borderwidth=0)
+    refresh_button.image = refresh_icon
+    refresh_button.place(x=400, y=35)
+
+    return query_combobox
+
+def update_query_list():
+    query_files = load_query_files()
+    query_combobox['values'] = query_files
+
 def try_query():
     try:
-        config = load_config()
-        sql_file = "query.txt"
+        selected_query = query_combobox.get()
+        queries_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), "queries") 
+        sql_file = os.path.join(queries_folder, selected_query)
 
         if not os.path.exists(sql_file):
             raise FileNotFoundError(f"Файл {sql_file} не найден.")
         
+        
         sql = read_query(sql_file)
+        config = load_config()
         connection = fdb.connect(**config)
         cursor = connection.cursor()
 
@@ -146,7 +172,11 @@ dynamic_interface()
 
 query_frame = ttk.Frame(notebook)
 notebook.add(query_frame, text="Выполнение запросов")
-tk.Label(query_frame, text="SQL-запросы из файла query.txt будут выполнены", font=("Arial", 12)).pack(pady=10)
-tk.Button(query_frame, text="Выполнить запросы", command=try_query, font=("Arial", 12)).pack(pady=20)
+
+tk.Label(query_frame, text="Выберите файл с запросами:", font=("Arial", 12)).place(x=10, y=10)
+tk.Button(query_frame, text="Выполнить запросы", command=try_query, font=("Arial", 12)).pack(pady=100)
+
+query_combobox = create_query_dropdown_with_refresh()
+
 
 root.mainloop()
