@@ -2,51 +2,44 @@ import tkinter as tk
 from tkinter import ttk, filedialog, messagebox, PhotoImage
 import fdb
 import os
+import sys
 import json
 from prettytable import PrettyTable
-import pandas as pd
+from pandas import DataFrame 
 
 def initialize_interface():
     try:
         config = load_config()
+        connection_type_var.set("local" if config["host"] == "localhost" else "remote")
+        dynamic_interface()
 
         if config["host"] == "localhost":
-            connection_type_var.set("local")
-            dynamic_interface()
             local_db_path_var.set(config["database"])
         else:
-            connection_type_var.set("remote")
-            dynamic_interface()
             remote_host_var.set(config["host"])
             remote_db_name_var.set(config["database"])
 
         user_var.set(config.get("user", "SYSDBA"))
         password_var.set(config.get("password", "masterkey"))
     except FileNotFoundError:
-        print("Файл config.json не найден. Пользователь должен настроить параметры вручную.")
+        messagebox.showinfo("Информация","Файл config.json не найден. Пользователь должен настроить параметры вручную.")
     except ValueError:
-        print("Файл config.json не найден. Пользователь должен настроить параметры вручную.")
+        messagebox.showinfo("Информация","Файл config.json не найден. Пользователь должен настроить параметры вручную.")
     except Exception as e:
-        print(f"Ошибка инициализации интерфейса: {e}")
+        messagebox.showerror("Ошибка",f"Ошибка инициализации интерфейса: {e}")
 
 def save_config():
     connection_type = connection_type_var.get()
-    config  = {}
-
-    if connection_type == "local":
-        config["host"] = 'localhost'
-        config["database"] = local_db_path_var.get()
-    else:
-        config["host"] = remote_host_var.get()
-        config["database"] = remote_db_name_var.get()
-
-    config["user"] = user_var.get()
-    config["password"] = password_var.get()
-    config["charset"]  = "UTF-8"
+    config  = {
+        "host" : "localhost" if connection_type == "local" else remote_host_var.get(),
+        "database": local_db_path_var.get() if connection_type == "local" else remote_db_name_var.get(),
+        "user": user_var.get(),
+        "password": password_var.get(),
+        "charset": "utf-8"
+    }
 
     with open("config.json", "w", encoding="utf-8") as f:
         json.dump(config, f, indent=4)
-
     messagebox.showinfo("Успех", "Конфигурация сохранена")
 
 def browse_file():
@@ -81,7 +74,7 @@ def export_to_excel(data, columns):
     )
     if not save_path:
         return
-    df = pd.DataFrame(data, columns=columns)
+    df = DataFrame(data, columns=columns)
     df.to_excel(save_path, index=False)
     messagebox.showinfo("Успех", f"Данные успешно сохранены в файл: {save_path}")
     
@@ -102,33 +95,30 @@ def print_results(cursos, results):
     else:
         messagebox.showinfo("Результат", "Запрос выполнен, но данных для вывода нет")
 
-def load_query_files():
-    queries_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), "queries")
-    if not os.path.exists(queries_folder):
-        os.makedirs(queries_folder)
-    return [f for f in os.listdir(queries_folder) if f.endswith('.txt')]
+def resource_path(relative_path):
+    if getattr(sys, '_MEIPASS', False):
+        return os.path.join(sys._MEIPASS, relative_path)
+    return os.path.join(os.path.abspath("."), relative_path)
 
-def create_query_dropdown_with_refresh():
-    query_files = load_query_files()
-    query_combobox = ttk.Combobox(query_frame, values=query_files, width=40, font=("Arial", 12))
-    query_combobox.place(x=10, y=40)
-
-
-    refresh_icon = PhotoImage(file='img/refresh.png')
-    refresh_button = tk.Button(query_frame, image=refresh_icon, command=update_query_list, borderwidth=0)
-    refresh_button.image = refresh_icon
-    refresh_button.place(x=400, y=35)
-
-    return query_combobox
+def get_queries_folder():
+    if getattr(sys, 'frozen', False):
+        return os.path.join(sys._MEIPASS, "queries")
+    else:
+        return os.path.join (os.path.dirname(os.path.abspath(__file__)), "queries")
 
 def update_query_list():
-    query_files = load_query_files()
+    queries_folder = get_queries_folder()
+    query_files = [f for f in os.listdir(queries_folder) if f.endswith(".txt")]
     query_combobox['values'] = query_files
+    if query_files:
+        query_combobox.set(query_files[0])
+    else:
+        query_combobox.set("")
 
 def try_query():
     try:
         selected_query = query_combobox.get()
-        queries_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), "queries") 
+        queries_folder = get_queries_folder()
         sql_file = os.path.join(queries_folder, selected_query)
 
         if not os.path.exists(sql_file):
@@ -205,16 +195,23 @@ tk.Entry(user_frame, textvariable=password_var, show="*", width=40).pack(anchor=
 
 tk.Button(config_frame, text="Сохранить настройки", command=save_config, font=("Arial", 12)).pack(side="bottom", pady=10)
 
-dynamic_interface()
-
 query_frame = ttk.Frame(notebook)
-notebook.add(query_frame, text="Выполнение запросов")
+notebook.add(query_frame, text="SQL-запросы")
 
-tk.Label(query_frame, text="Выберите файл с запросами:", font=("Arial", 12)).place(x=10, y=10)
-tk.Button(query_frame, text="Выполнить запросы", command=try_query, font=("Arial", 12)).pack(pady=100)
+tk.Label(query_frame, text="Выберите SQL-запрос:", font=("Arial", 12)).place(x=10, y=30)
 
+query_combobox = ttk.Combobox(query_frame, width=60)
+query_combobox.place(x=10, y=60)
+
+refresh_img = tk.PhotoImage(file='img/refresh.png')
+refresh_button = tk.Button(query_frame, image=refresh_img, command=update_query_list,borderwidth=0)
+refresh_button.place(x=400, y=53)
+
+execute_button = tk.Button(query_frame, text="Выполнить запросы", command=try_query, font=("Arial", 12))
+execute_button.pack(pady=100)
+
+dynamic_interface()
 initialize_interface()
-query_combobox = create_query_dropdown_with_refresh()
-
+update_query_list()
 
 root.mainloop()
