@@ -3,8 +3,11 @@
 build/
 dist/
 __pycache__/
+archive/
 
 # Файлы
 firebird_query.spec
 fb_query.spec
+*.xlsx
+
 

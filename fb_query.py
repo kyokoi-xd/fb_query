@@ -4,6 +4,30 @@ import fdb
 import os
 import json
 from prettytable import PrettyTable
+import pandas as pd
+
+def initialize_interface():
+    try:
+        config = load_config()
+
+        if config["host"] == "localhost":
+            connection_type_var.set("local")
+            dynamic_interface()
+            local_db_path_var.set(config["database"])
+        else:
+            connection_type_var.set("remote")
+            dynamic_interface()
+            remote_host_var.set(config["host"])
+            remote_db_name_var.set(config["database"])
+
+        user_var.set(config.get("user", "SYSDBA"))
+        password_var.set(config.get("password", "masterkey"))
+    except FileNotFoundError:
+        print("Файл config.json не найден. Пользователь должен настроить параметры вручную.")
+    except ValueError:
+        print("Файл config.json не найден. Пользователь должен настроить параметры вручную.")
+    except Exception as e:
+        print(f"Ошибка инициализации интерфейса: {e}")
 
 def save_config():
     connection_type = connection_type_var.get()
@@ -48,20 +72,33 @@ def load_config(config_path="config.json"):
 def read_query(filename):
     with open(filename, "r", encoding="utf-8") as file:
         return file.read()
+
+def export_to_excel(data, columns):
+    save_path = filedialog.asksaveasfilename(
+        defaultextension="*.xlsx",
+        filetypes=[("Excel files", "*.xlsx")],
+        title="Сохранить результат в Excel"
+    )
+    if not save_path:
+        return
+    df = pd.DataFrame(data, columns=columns)
+    df.to_excel(save_path, index=False)
+    messagebox.showinfo("Успех", f"Данные успешно сохранены в файл: {save_path}")
     
 def print_results(cursos, results):
     if results:
-        colums = [column[0] for column in cursos.description]
+        columns = [column[0] for column in cursos.description]
         table = PrettyTable()
-        table.field_names = colums
+        table.field_names = columns
 
         for row in results:
             table.add_row(row)
 
         result_window = tk.Toplevel(root)
         result_window.title("Результаты запроса")
-        result_label = tk.Label(result_window, text=str(table), justify="left", font=("Courier", 10))
-        result_label.pack(padx=10, pady=10, fill="both", expand=True)
+
+        tk.Label(result_window, text=str(table), justify="left", font=("Courier", 10)).pack(padx=10, pady=10, fill="both", expand=True)
+        tk.Button(result_window, text="Экспортировать в Excel", command=lambda: export_to_excel(results, columns)).pack(pady=10)
     else:
         messagebox.showinfo("Результат", "Запрос выполнен, но данных для вывода нет")
 
@@ -176,6 +213,7 @@ notebook.add(query_frame, text="Выполнение запросов")
 tk.Label(query_frame, text="Выберите файл с запросами:", font=("Arial", 12)).place(x=10, y=10)
 tk.Button(query_frame, text="Выполнить запросы", command=try_query, font=("Arial", 12)).pack(pady=100)
 
+initialize_interface()
 query_combobox = create_query_dropdown_with_refresh()
 
 
