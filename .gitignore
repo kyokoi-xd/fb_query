@@ -4,6 +4,7 @@ build/
 dist/
 __pycache__/
 archive/
+venv/
 
 # Файлы
 firebird_query.spec
