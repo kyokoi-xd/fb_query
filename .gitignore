@@ -1,7 +1,9 @@
 # Директории
 .venv/
+venv/
 build/
 dist/
+
 
 # Файлы
 firebird_query.spec
