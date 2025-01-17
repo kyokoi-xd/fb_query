@@ -110,10 +110,13 @@ def update_query_list(event=None):
     queries_folder = get_queries_folder()
     query_files = [f for f in os.listdir(queries_folder) if f.endswith(".txt")]
     query_combobox['values'] = query_files
-    if query_files:
-        query_combobox.set(query_files[0])
-    else:
-        query_combobox.set("")
+    query_combobox.set("")
+
+def clear_selection(event):
+    event.widget.selection_clear()
+
+def block_typing(event):
+    return "break"
 
 def try_query():
     try:
@@ -203,6 +206,9 @@ tk.Label(query_frame, text="Выберите SQL-запрос:", font=("Arial", 
 query_combobox = ttk.Combobox(query_frame, width=70)
 query_combobox.place(x=10, y=60)
 query_combobox.bind("<Button-1>", update_query_list)
+query_combobox.bind("<KeyPress>", block_typing)
+query_combobox.bind("<<ComboboxSelected>>", clear_selection)
+
 
 execute_button = tk.Button(query_frame, text="Выполнить запросы", command=try_query, font=("Arial", 12))
 execute_button.pack(pady=100)
