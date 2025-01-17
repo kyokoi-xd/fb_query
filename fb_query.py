@@ -7,6 +7,10 @@ import json
 from prettytable import PrettyTable
 from pandas import DataFrame 
 
+current_dir = os.path.dirname(os.path.abspath(__file__))
+fdb.load_api(os.path.join(current_dir, 'fbclient.dll'))
+
+
 def initialize_interface():
     try:
         config = load_config()
@@ -95,18 +99,14 @@ def print_results(cursos, results):
     else:
         messagebox.showinfo("Результат", "Запрос выполнен, но данных для вывода нет")
 
-def resource_path(relative_path):
-    if getattr(sys, '_MEIPASS', False):
-        return os.path.join(sys._MEIPASS, relative_path)
-    return os.path.join(os.path.abspath("."), relative_path)
-
 def get_queries_folder():
     if getattr(sys, 'frozen', False):
-        return os.path.join(sys._MEIPASS, "queries")
+        base_path = os.path.dirname(sys.executable)
     else:
-        return os.path.join (os.path.dirname(os.path.abspath(__file__)), "queries")
+        base_path = os.path.dirname(os.path.abspath(__file__))
+    return os.path.join(base_path, "queries")
 
-def update_query_list():
+def update_query_list(event=None):
     queries_folder = get_queries_folder()
     query_files = [f for f in os.listdir(queries_folder) if f.endswith(".txt")]
     query_combobox['values'] = query_files
@@ -200,18 +200,14 @@ notebook.add(query_frame, text="SQL-запросы")
 
 tk.Label(query_frame, text="Выберите SQL-запрос:", font=("Arial", 12)).place(x=10, y=30)
 
-query_combobox = ttk.Combobox(query_frame, width=60)
+query_combobox = ttk.Combobox(query_frame, width=70)
 query_combobox.place(x=10, y=60)
-
-refresh_img = tk.PhotoImage(file='img/refresh.png')
-refresh_button = tk.Button(query_frame, image=refresh_img, command=update_query_list,borderwidth=0)
-refresh_button.place(x=400, y=53)
+query_combobox.bind("<Button-1>", update_query_list)
 
 execute_button = tk.Button(query_frame, text="Выполнить запросы", command=try_query, font=("Arial", 12))
 execute_button.pack(pady=100)
 
 dynamic_interface()
 initialize_interface()
-update_query_list()
 
 root.mainloop()
