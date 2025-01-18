@@ -160,6 +160,7 @@ def try_query():
 root = tk.Tk()
 root.title("Управление базой данных")
 root.geometry("475x480")
+root.resizable(width=False, height=False)
 notebook = ttk.Notebook(root)
 notebook.pack(fill="both", expand=True)
 
