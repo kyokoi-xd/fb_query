@@ -1,0 +1,5 @@
+select * from my_tablE;
+UPDATE MY_TABLE SET AGE = AGE + 1;
+SELECT * FROM MY_TABLE;
+SELECT * FROM MY_TABLE;
+
