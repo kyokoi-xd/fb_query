@@ -1,14 +1,14 @@
-import tkinter as tk
-from tkinter import ttk, filedialog, messagebox, PhotoImage
-import fdb
-import os
-import sys
-import json
-from prettytable import PrettyTable
-from pandas import DataFrame 
+import tkinter as tk # Работа с интерфейсом
+from tkinter import ttk, filedialog, messagebox
+import fdb # FireBird - Реляционная база данных с SQL диалектом
+import os # Работа с файловой системой
+import sys # для корректного формирования пути к скомпилированному файлу через PyInstaller
+import json # Для работы с json файлами
+from prettytable import PrettyTable # Для визуализации таблицы в консоли, что помогает сделать вывод информации более читаемым и удобным для восприятия
+from pandas import DataFrame # Для создания таблицы из данных, SQL-запрос -> экспорт в Excel
 
-current_dir = os.path.dirname(os.path.abspath(__file__))
-fdb.load_api(os.path.join(current_dir, 'fbclient.dll'))
+current_dir = os.path.dirname(os.path.abspath(__file__)) # __file__ - указывает путь к текущему исполняемому файлу Python
+fdb.load_api(os.path.join(current_dir, 'fbclient.dll')) # Загрузка клиентской библиотеки из окружения с исполняемым файлом для работы с бд Firebird без надобности установленного firebird клиента на ПК
 
 
 def initialize_interface():
@@ -128,7 +128,7 @@ def try_query():
             raise FileNotFoundError(f"Файл {sql_file} не найден.")
         
         
-        sql = read_query(sql_file)
+        sql = read_query(sql_file).upper()
         config = load_config()
         connection = fdb.connect(**config)
         cursor = connection.cursor()
@@ -204,11 +204,15 @@ notebook.add(query_frame, text="SQL-запросы")
 
 tk.Label(query_frame, text="Выберите SQL-запрос:", font=("Arial", 12)).place(x=10, y=30)
 
-query_combobox = ttk.Combobox(query_frame, width=70)
+query_combobox = ttk.Combobox(query_frame, width=70, state="readonly")
 query_combobox.place(x=10, y=60)
-query_combobox.bind("<Button-1>", update_query_list)
-query_combobox.bind("<KeyPress>", block_typing)
-query_combobox.bind("<<ComboboxSelected>>", clear_selection)
+
+def open_combobox(event=None):
+    update_query_list()  # обновляем список файлов
+    query_combobox.focus_set()
+    root.after(0, lambda: query_combobox.event_generate('<Down>'))
+
+query_combobox.bind("<Button-1>", open_combobox)
 
 
 execute_button = tk.Button(query_frame, text="Выполнить запросы", command=try_query, font=("Arial", 12))
